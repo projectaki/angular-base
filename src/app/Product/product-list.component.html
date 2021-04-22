@@ -1,0 +1,15 @@
+<div>
+    <!-- *ngIf is conditional for rendering -->
+    <div *ngIf="1===1">HELLO</div>
+    <!-- == collection.map(() => return divs) -->
+    <div *ngFor="let prod of products">{{prod.name}}</div>
+
+    <img [src]="" [style.width.px]="50">
+    <button (click)="onClickHandler()">click</button>
+
+    <!-- Two-way binding, the input is hooked to the variable declared in .ts file. (== setState) -->
+    <input type="text" [(ngModel)]="filter">
+
+    <!-- Piper to change dispaly before render, check for list of available pipes -->
+    <div>{{filter | uppercase}}</div>
+</div>
