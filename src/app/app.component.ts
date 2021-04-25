@@ -7,6 +7,7 @@ import { Component } from "@angular/core";
 export class AppComponent {
   pageTitle: string = "Title";
 
+  // consumes the return of the callback function from child
   getDataFromChild = (msg: string) => {
     console.log(msg);
   }

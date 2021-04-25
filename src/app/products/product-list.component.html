@@ -1,8 +1,8 @@
 <div>
-    <!-- *ngIf is conditional for rendering -->
+    <!-- *ngIf is conditional for rendering, can be replaced with conditional chaining (param?.param2) -->
     <div *ngIf="1===1">HELLO</div>
     <!-- == collection.map(() => return divs) -->
-    <div *ngFor="let prod of products">{{prod.name}}</div>
+    <div *ngFor="let prod of products">{{prod?.name}}</div> 
 
     <img [src]="" [style.width.px]="50">
     <button (click)="onClickHandler()">click</button>
