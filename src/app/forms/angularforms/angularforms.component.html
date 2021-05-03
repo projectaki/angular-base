@@ -1,8 +1,24 @@
+
 <form [formGroup]="profileForm">
-    <label for="firstName">first name</label>
-    <input formControlName="firstName" type="text" name="firstName" id="firstName" multiple="true"/>
-    <br/>
-    <br/>
-    <label for="lastName">last name</label>
-    <input formControlName="lastName" type="text" name="lastName" id="lastName"/>
+
+  <div formArrayName="names" *ngFor="let name of names.controls; let i=index">
+    <div [formGroupName]="i">
+      <label attr.for="{{'firstName' + i}}">first name</label>
+      <input formControlName="firstName" type="text" id="{{'firstName' + i}}" multiple="true"/>
+      <br/>
+      <br/>
+      <label attr.for="{{'lastName' + i}}">last name</label>
+      <input formControlName="lastName" type="text" id="{{'lastName' + i}}"/>
+    </div>
+  </div>
+    
+  <br/>
+  <br/>
+  <button (click)="addNames()">duplicate</button>
+  <label for="age">age</label>
+  <input formControlName="age" type="text" id="age"/>
+    
   </form>
+  <button (click)="dynamicallyChangeValidators()">click</button>
+  <div>{{profileForm.get('lastName')?.errors?.length}}</div>
+  <div>{{firstNameErrorMsg}}</div>
