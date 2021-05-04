@@ -3,22 +3,24 @@
 
   <div formArrayName="names" *ngFor="let name of names.controls; let i=index">
     <div [formGroupName]="i">
-      <label attr.for="{{'firstName' + i}}">first name</label>
+      <label attr.for="{{'firstName' + i}}">first name {{i}}</label>
       <input formControlName="firstName" type="text" id="{{'firstName' + i}}" multiple="true"/>
+      <div>{{firstNameErrorMsgs[i]}}</div>
       <br/>
       <br/>
-      <label attr.for="{{'lastName' + i}}">last name</label>
-      <input formControlName="lastName" type="text" id="{{'lastName' + i}}"/>
+      <!-- <label attr.for="{{'lastName' + i}}">last name</label>
+      <input formControlName="lastName" type="text" id="{{'lastName' + i}}"/> -->
+      <button *ngIf="i !== 0" (click)="deleteGroupHandler(i)">delete</button>
     </div>
   </div>
     
   <br/>
   <br/>
-  <button (click)="addNames()">duplicate</button>
-  <label for="age">age</label>
-  <input formControlName="age" type="text" id="age"/>
+  <button (click)="addGroupHandler()">duplicate</button>
+  <!-- <label for="age">age</label>
+  <input formControlName="age" type="text" id="age"/> -->
     
   </form>
-  <button (click)="dynamicallyChangeValidators()">click</button>
-  <div>{{profileForm.get('lastName')?.errors?.length}}</div>
-  <div>{{firstNameErrorMsg}}</div>
+  <!-- <button (click)="dynamicallyChangeValidatorsHandler()">click</button> -->
+  <!-- <div>{{profileForm.get('lastName')?.errors?.length}}</div> -->
+

@@ -10,6 +10,7 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 
 @Component({
@@ -20,7 +21,8 @@ import { debounceTime } from 'rxjs/operators';
 export class AngularformsComponent implements OnInit {
   profileForm!: FormGroup;
   // error string which we can bind to for display
-  firstNameErrorMsg!: string;
+  firstNameErrorMsgs: string[] = [];
+  subscriptions!: Subscription;
   // validation message array (from external source)
   private validationMessages: { [key: string]: string } = {
     required: 'Enter required field',
@@ -34,6 +36,7 @@ export class AngularformsComponent implements OnInit {
   constructor(private fb: FormBuilder) {}
 
   ngOnInit(): void {
+    this.subscriptions = new Subscription();
     // this.profileForm = new FormGroup({
     //   firstName: new FormControl(),
     //   lastName: new FormControl(),
@@ -44,28 +47,40 @@ export class AngularformsComponent implements OnInit {
     });
     //this.profileForm.patchValue({ firstName: 'temp' });
 
-    // subscribe to changes, and set
-    const cont = this.names.get('0.firstName');
-
-    // console.log(fn.get('firstName'));
-    cont?.valueChanges // .pipe(debounceTime(1000)) // delay before validation error displays (gives to type correct info)
-      .subscribe((value) => {
-        this.setMsg(cont);
-      });
+    this.subscribeToValueChange(0);
   }
 
-  // takes the passed control, does the error checks, and asigns the binded error msg
-  setMsg = (c: AbstractControl): void => {
-    this.firstNameErrorMsg = '';
+  ngOnDestroy = () => {
+    // avoid memory leak
+    this.subscriptions.unsubscribe();
+  };
+
+  // given an index, grabs the control at that index and subscribes to the value changes of that control
+  subscribeToValueChange = (index: number) => {
+    const cont = this.names.get(`${index}.firstName`);
+
+    // console.log(fn.get('firstName'));
+    const sub = cont?.valueChanges // .pipe(debounceTime(1000)) // delay before validation error displays (gives to type correct info)
+      .subscribe((value) => {
+        // when there is new value event in obsservable do something
+        this._updateMsgAtIndex(cont, index);
+        console.log(index);
+      });
+    this.subscriptions.add(sub);
+  };
+
+  // takes the passed control, does the error checks, and asigns the binded error msg, index is passed for updating error message in errorMsg Array
+  _updateMsgAtIndex = (c: AbstractControl, index: number): void => {
+    this.firstNameErrorMsgs[index] = '';
     if (c.errors) {
-      this.firstNameErrorMsg = Object.keys(c.errors)
+      this.firstNameErrorMsgs[index] = Object.keys(c.errors)
         .map((key) => this.validationMessages[key])
         .join(' ');
     }
   };
 
   // change validotors as needed within code
-  dynamicallyChangeValidators = () => {
+  dynamicallyChangeValidatorsHandler = () => {
     const lastNameControl = this.profileForm.get('names.lastName');
     lastNameControl?.setValidators(Validators.required);
     //lastNameControl?.clearValidators();
@@ -77,18 +92,33 @@ export class AngularformsComponent implements OnInit {
       firstName: ['', [Validators.required, Validators.minLength(4)]],
       lastName: [
         { value: '', disabled: false },
-        [validatorWrapper(3), Validators.required],
+        [customValidator(3), Validators.required],
       ],
     });
   };
 
-  addNames = () => {
+  addGroupHandler = () => {
     this.names.push(this.buildFormGroup());
+    this.subscribeToValueChange(this.names.length - 1);
+  };
+
+  deleteGroupHandler = (index: number) => {
+    this.names.removeAt(index);
+    this._resetSubs();
+  };
+
+  // when deleting a control, the subscriptions have to be rerun, because the indexes shift with deletion
+  _resetSubs = () => {
+    this.subscriptions.unsubscribe();
+    this.subscriptions = new Subscription();
+    for (let i = 0; i < this.names.length; i++) {
+      this.subscribeToValueChange(i);
+    }
   };
 }
 // OUTSIDE FUNCTION => SEPERATE FILE FOR CUSTOM VALIDATORS
 // to be able to pass parameters to the cutom validator, we need to wrap it and return9
-const validatorWrapper = (max: number): ValidatorFn => {
+const customValidator = (max: number): ValidatorFn => {
   return (c: AbstractControl): { [key: string]: boolean } | null => {
     if (c.value > max) {
       return { length: true };
