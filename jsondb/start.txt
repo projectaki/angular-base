@@ -1,1 +1,1 @@
-json-server --watch db.json
+cd ang-proj; cd jsondb; json-server --watch db.json

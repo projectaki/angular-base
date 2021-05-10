@@ -1,4 +1,4 @@
-<div>
+<div *ngIf="false">
     <!-- *ngIf is conditional for rendering, can be replaced with conditional chaining (param?.param2) -->
     <div *ngIf="1===1">HELLO</div>
     <!-- == collection.map(() => return divs) -->
@@ -14,3 +14,15 @@
     <div>{{filter | uppercase}}</div>
     <ng-content></ng-content>
 </div>
+
+<!-- reactive way of getting products -->
+<div *ngIf="productsWithAdded$ | async as products">
+    <div *ngFor="let prod of products">{{prod.price}}</div> 
+    
+</div>
+<div *ngIf="categories$ | async as cats">
+    <button (click)="filterClicked(cat)" *ngFor="let cat of cats">{{cat}}</button>
+</div>
+<div>{{errorMessage}}</div>
+<button (click)="addProd()">add product</button>
+

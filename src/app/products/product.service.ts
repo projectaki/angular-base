@@ -5,8 +5,8 @@ import {
   HttpErrorResponse,
   HttpHeaders,
 } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { combineLatest, Observable, of, throwError } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root', // scope where it is available
@@ -14,15 +14,38 @@ import { catchError, tap } from 'rxjs/operators';
 export class ProductService {
   private URL = 'http://localhost:3000/products';
 
+  products$ = this.http.get<IProduct[]>(this.URL).pipe(
+    map((products) =>
+      products.map((product) => ({ ...product, price: 999 } as IProduct))
+    ),
+    tap((data) => console.log(JSON.stringify(data))),
+    catchError(this.handleError)
+  );
+
+  categories$ = of([500, 1000, 1500]);
+  productsCombined$ = combineLatest([this.products$, this.categories$]).pipe(
+    tap(([products, categories]) =>
+      console.log('TAPPED', products, categories)
+    ),
+    map(([products, categories]) =>
+      products.map(
+        (product, idx) => ({ ...product, price: categories[idx] } as IProduct)
+      )
+    )
+  );
+
   constructor(private http: HttpClient) {}
 
-  // returns an observable
-  getProducts = (): Observable<IProduct[]> => {
-    return this.http.get<IProduct[]>(this.URL).pipe(
-      tap((data) => console.log(JSON.stringify(data))), // tap into the data, and do something (logging)
-      catchError(this.handleError) // error handling operator
-    ); // pipe into the observable
-  };
+  // // returns an observable
+  // getProducts = (): Observable<IProduct[]> => {
+  //   return this.http.get<IProduct[]>(this.URL).pipe(
+  //     tap((data) => console.log(JSON.stringify(data))), // tap into the data, and do something (logging)
+  //     // catchError((error) => {
+  //     //   return of([{ id: 1, name: 'name', price: 5 }]); // if error we ca nreturn a new observer (maybe from cache)
+  //     // }),
+  //     catchError(this.handleError) // catch and rethrow
+  //   ); // pipe into the observable
+  // };
 
   getProduct = (id: number): Observable<IProduct> => {
     const url = `${this.URL}/${id}`;
@@ -36,8 +59,9 @@ export class ProductService {
     return this.http.put<IProduct>(url, product, { headers: headers });
   };
 
-  private handleError = (err: HttpErrorResponse) => {
-    console.log(err.error.message);
-    return throwError(err.error.message);
-  };
+  // catch and rethrow error further up the chain
+  handleError(err: HttpErrorResponse) {
+    console.log('error', err.message);
+    return throwError(err.message);
+  }
 }
