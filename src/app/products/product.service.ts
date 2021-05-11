@@ -6,7 +6,14 @@ import {
   HttpHeaders,
 } from '@angular/common/http';
 import { combineLatest, Observable, of, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import {
+  catchError,
+  concatMap,
+  map,
+  shareReplay,
+  tap,
+  toArray,
+} from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root', // scope where it is available
@@ -18,7 +25,7 @@ export class ProductService {
     map((products) =>
       products.map((product) => ({ ...product, price: 999 } as IProduct))
     ),
-    tap((data) => console.log(JSON.stringify(data))),
+    tap((data) => console.log('rerun')),
     catchError(this.handleError)
   );
 
@@ -32,9 +39,17 @@ export class ProductService {
         (product, idx) => ({ ...product, price: categories[idx] } as IProduct)
       )
     )
+    // shareReplay(1) // caches the observable if multiple things subscribe to it, it will onyl load once
   );
 
-  constructor(private http: HttpClient) {}
+  higherOrderProducts$ = of(1, 3).pipe(
+    concatMap((id) => this.http.get<IProduct>(`${this.URL}/${id}`))
+    // toArray() if we need it to emit 1 array
+  );
+
+  constructor(private http: HttpClient) {
+    this.higherOrderProducts$.subscribe((data) => console.log('HO', data));
+  }
 
   // // returns an observable
   // getProducts = (): Observable<IProduct[]> => {

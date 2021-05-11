@@ -18,7 +18,14 @@ import {
   Subject,
   Subscription,
 } from 'rxjs';
-import { catchError, map, scan, startWith, tap } from 'rxjs/operators';
+import {
+  catchError,
+  map,
+  scan,
+  shareReplay,
+  startWith,
+  tap,
+} from 'rxjs/operators';
 import { IProduct } from './product';
 import { ProductService } from './product.service';
 
@@ -75,7 +82,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
   addProductAction$ = this.addProductSubject.asObservable();
 
   productsWithAdded$ = merge(
-    this.productService.products$,
+    this.productService.productsCombined$,
     this.addProductAction$
   ).pipe(scan((acc: IProduct[], value: IProduct[]) => [...acc, ...value]));
 
@@ -120,5 +127,10 @@ export class ProductListComponent implements OnInit, OnDestroy {
   // -forkJoin => last emitted value of all input streams, only called when all streams have completed
   // -withLatestFrom => when the source stream emits, emits an array of latest elements, shape is always === stream count
   // -merge => merges multiple streams into 1 stream
-  // -scan
+  // -scan => like reducer, has an accumulator and returns the accumulated result
+
+  // HIGHER ORDER MAPPING
+  // -concatMap => each emitted item to a new inner observable, syncronous, concats the results
+  // -mergeMap => each emitted item to new inner observable, asyncronous, merges the result (same as concat, but order isnt garanteed)
+  // -switchMap => each emitted item to new inner observable, stops the previous emit, and continues with the current one, merges result to output stream
 }
