@@ -74,6 +74,11 @@ export class ProductService {
     return this.http.put<IProduct>(url, product, { headers: headers });
   };
 
+  createProduct = (product: IProduct): Observable<IProduct> => {
+    const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
+    return this.http.post<IProduct>(this.URL, product, { headers: headers });
+  };
+
   // catch and rethrow error further up the chain
   handleError(err: HttpErrorResponse) {
     console.log('error', err.message);

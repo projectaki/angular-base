@@ -10,6 +10,10 @@ import { ProductModule } from './products/product.module';
 import { PolygonsFromMapModule } from './polygons-from-map/polygons-from-map.module';
 import { AngularFormsModule } from './forms/angularforms.module';
 import { SharedModule } from './shared/shared.module';
+import { StoreModule } from '@ngrx/store';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools';
+import { environment } from '../environments/environment';
+import { EffectsModule } from '@ngrx/effects';
 
 @NgModule({
   declarations: [AppComponent, ObservableComponent, HomeComponent],
@@ -26,6 +30,13 @@ import { SharedModule } from './shared/shared.module';
     PolygonsFromMapModule,
     AngularFormsModule,
     SharedModule,
+    StoreModule.forRoot({}, {}),
+    StoreDevtoolsModule.instrument({
+      name: 'ang-proj devtools',
+      maxAge: 25,
+      logOnly: environment.production,
+    }),
+    EffectsModule.forRoot([]),
   ],
   providers: [],
   bootstrap: [AppComponent],

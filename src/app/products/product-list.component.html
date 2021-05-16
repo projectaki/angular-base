@@ -16,7 +16,7 @@
 </div>
 
 <!-- reactive way of getting products -->
-<div *ngIf="productsWithAdded$ | async as products">
+<div *ngIf="test$ | async as products">
     <div *ngFor="let prod of products">{{prod.id + " "}}{{prod.price + " "}}{{prod.name}}</div> 
     
 </div>
@@ -26,4 +26,6 @@
 </div>
 <div>{{errorMessage}}</div>
 <button (click)="addProd()">add product</button>
+<button (click)="toggleHandler()">STATE CHECK</button>
+<div>{{toggled}}</div>
 

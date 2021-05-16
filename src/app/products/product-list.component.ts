@@ -8,6 +8,7 @@ import {
   Output,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Store } from '@ngrx/store';
 import {
   BehaviorSubject,
   combineLatest,
@@ -29,6 +30,8 @@ import {
 import { IProduct } from './product';
 import { ProductService } from './product.service';
 
+import { ProductPageActions } from './state/actions';
+import { getProducts, getShow, State } from './state';
 @Component({
   selector: 'pm-products',
   templateUrl: './product-list.component.html',
@@ -56,6 +59,8 @@ export class ProductListComponent implements OnInit, OnDestroy {
     })
   );
 
+  test$!: Observable<IProduct[]>;
+
   categories$ = this.productService.categories$.pipe(
     catchError((err) => {
       this.errorMessage = err;
@@ -66,7 +71,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
   errorMessage: string = '';
 
   filter: string = 'default';
-  sub!: Subscription; // ! tells angular we will set the sub to something
+  sub: Subscription = new Subscription(); // ! tells angular we will set the sub to something
   private _display: string = '';
 
   get display(): string {
@@ -82,27 +87,37 @@ export class ProductListComponent implements OnInit, OnDestroy {
   addProductAction$ = this.addProductSubject.asObservable();
 
   productsWithAdded$ = merge(
-    this.productService.productsCombined$,
+    this.productService.products$,
     this.addProductAction$
   ).pipe(scan((acc: IProduct[], value: IProduct[]) => [...acc, ...value]));
+
+  toggled: boolean = false;
+
+  // test$ = combineLatest([
+  //   this.productService.productsCombined$,
+  //   this.addProductAction$,
+  // ]).pipe(
+  //   tap(([products, product]) => console.log('prod', products, product)),
+  //   map(([products, product]) => [...products, product])
+  // );
 
   // injected services (ActivatedRoute: for reading url, Router: for navigating to route with code )
   constructor(
     private productService: ProductService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private store: Store<State>
   ) {}
 
   // On mount
   ngOnInit(): void {
-    // PRODUCTS WITH OBSERVABLE
-    //this.Mockproducts = this.productService.getProductsMock();
-    // this.sub = this.productService.getProducts().subscribe({
-    //   next: (products) => (this.products = products),
-    //   error: (err) => (this.errorMessage = err),
-    // }); // declare subscription to an observable
-    // console.log(this.route.snapshot.paramMap.get('id')); // get id from url, must match param declared in route
-    // this.route.paramMap.subscribe((params) => console.log(params.get('id'))); // if param changes whithout leaving the page, then a subscription is required to track the changes
+    this.sub.add(
+      this.store.select(getShow).subscribe((show) => (this.toggled = show))
+    );
+    this.test$ = this.store
+      .select(getProducts)
+      .pipe(tap((data) => console.log('HEERE', data)));
+    this.store.dispatch(ProductPageActions.loadProducts());
   }
   // On dismount
   ngOnDestroy(): void {
@@ -119,7 +134,24 @@ export class ProductListComponent implements OnInit, OnDestroy {
   }
 
   addProd() {
-    this.addProductSubject.next([{ id: 6, price: 6, name: 'added' }]);
+    const newProd: IProduct = { id: 9, price: 6, name: 'added' };
+    this.productService
+      .createProduct(newProd)
+      .subscribe(() => this.addProductSubject.next([newProd]));
+  }
+
+  toggleHandler() {
+    this.store.dispatch(ProductPageActions.toggleShow());
+  }
+
+  setProductsHandler(products: IProduct[]) {
+    this.store.dispatch(ProductPageActions.setProducts({ products }));
+  }
+
+  setCurrentProduct(product: IProduct) {
+    this.store.dispatch(
+      ProductPageActions.setCurrentProduct({ productId: product.id })
+    );
   }
 
   // Combining stream
