@@ -11,7 +11,11 @@ export class PolygonsFromMapComponent implements OnInit {
   constructor(private map: MapService) {}
 
   ngOnInit(): void {
-    this.map.buildMap();
+    //this.map.buildMap();
+  }
+
+  ngAfterViewInit() {
+    this.map.buildMap2();
   }
 
   mouseClickHandler = async () => {
