@@ -10,9 +10,7 @@ import { MapService } from './map.service';
 export class PolygonsFromMapComponent implements OnInit {
   constructor(private map: MapService) {}
 
-  ngOnInit(): void {
-    //this.map.buildMap();
-  }
+  ngOnInit(): void {}
 
   ngAfterViewInit() {
     this.map.buildMap2();
@@ -22,4 +20,8 @@ export class PolygonsFromMapComponent implements OnInit {
     const polygons = await this.map.getAllPolygons();
     console.log(polygons);
   };
+
+  clickMe() {
+    this.map.clonk();
+  }
 }
