@@ -1,5 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import * as mapboxgl from 'mapbox-gl';
+import { Subscription } from 'rxjs';
+import { map, mergeMap } from 'rxjs/operators';
 import { MapService } from './map.service';
 
 @Component({
@@ -7,22 +9,23 @@ import { MapService } from './map.service';
   templateUrl: './polygons-from-map.component.html',
   styleUrls: ['./polygons-from-map.component.css'],
 })
-export class PolygonsFromMapComponent implements OnInit {
-  constructor(private map: MapService) {}
+export class PolygonsFromMapComponent implements OnInit, OnDestroy {
+  filtered$ = this.mapService.filteredData$;
+  subs: Subscription = new Subscription();
 
-  ngOnInit(): void {}
+  constructor(private mapService: MapService) {}
 
-  ngAfterViewInit() {
-    this.map.buildSelectionMap();
-    this.map.buildDisplayMap();
+  ngOnInit(): void {
+    this.subs.add(this.filtered$.subscribe());
   }
 
-  mouseClickHandler = async () => {
-    const polygons = await this.map.getAllPolygons();
-    console.log(polygons);
-  };
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+  }
 
-  clickMe() {
-    this.map.getAllPolygons();
+  ngAfterViewInit() {}
+
+  savePolygons() {
+    this.mapService.saveAllPolygons();
   }
 }
