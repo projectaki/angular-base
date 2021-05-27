@@ -13,7 +13,8 @@ export class PolygonsFromMapComponent implements OnInit {
   ngOnInit(): void {}
 
   ngAfterViewInit() {
-    this.map.buildMap2();
+    this.map.buildSelectionMap();
+    this.map.buildDisplayMap();
   }
 
   mouseClickHandler = async () => {
@@ -22,6 +23,6 @@ export class PolygonsFromMapComponent implements OnInit {
   };
 
   clickMe() {
-    this.map.clonk();
+    this.map.updateDeckData(5);
   }
 }

@@ -30,33 +30,32 @@ export class MapService {
       else return newData;
     })
   );
-  /**
-   * The map variable which holds the map instance
-   */
+
   map: any;
   deck: any;
   draw: any;
-  style = 'mapbox://styles/mapbox/dark-v10';
-  lat = 45.899977;
-  lng = 6.172652;
-  zoom = 12;
 
-  COLUMN_LAYER_DATA =
-    'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/hexagons.json';
-
-  half: any;
-
-  colLayer: any;
+  INITIAL_VIEW_STATE = {
+    latitude: 37.773972,
+    longitude: -122.431297,
+    zoom: 10,
+    bearing: 0,
+    pitch: 30,
+    style: 'mapbox://styles/mapbox/dark-v10',
+  };
 
   constructor(public http: HttpClient) {}
 
-  buildMap() {
+  buildSelectionMap() {
     this.map = new mapboxgl.Map({
       accessToken: environment.mapbox.accessToken,
-      container: 'map',
-      style: this.style,
-      zoom: this.zoom,
-      center: [this.lng, this.lat],
+      container: 'selection-map',
+      style: this.INITIAL_VIEW_STATE.style,
+      zoom: this.INITIAL_VIEW_STATE.zoom,
+      center: [
+        this.INITIAL_VIEW_STATE.longitude,
+        this.INITIAL_VIEW_STATE.latitude,
+      ],
     });
 
     this.draw = new MapboxDraw({
@@ -74,10 +73,17 @@ export class MapService {
     // map.on("draw.update", () => (isSubmitable = true));
   }
 
-  clonk() {
-    this.res$.pipe(map((data) => data.slice(0, 30))).subscribe((data) => {
-      this.newDataSubject.next(data);
-    });
+  updateDeckData(val: number) {
+    // will be raplaced with data to update
+    this.res$
+      .pipe(
+        map((data) => data.slice(0, val)),
+        tap((data) => console.log(data))
+      )
+      .subscribe((data) => {
+        this.newDataSubject.next(data);
+      });
+
     this.data$.subscribe((data: any) => {
       const layers = [
         new ColumnLayer({
@@ -95,35 +101,27 @@ export class MapService {
           getElevation: (d: { value: any }) => d.value,
         }),
       ];
-      console.log(layers);
       this.deck.setProps({ layers: layers });
     });
   }
 
-  buildMap2() {
+  buildDisplayMap() {
     this.res$.subscribe((data) => {
-      console.log('HHHHERE', data),
-        ((mapboxgl as any).accessToken = environment.mapbox.accessToken);
-      const INITIAL_VIEW_STATE = {
-        latitude: 37.773972,
-        longitude: -122.431297,
-        zoom: 10,
-        bearing: 0,
-        pitch: 30,
-      };
-
       const map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/mapbox/dark-v10',
-        // Note: deck.gl will be in charge of interaction and event handling
+        accessToken: environment.mapbox.accessToken,
+        container: 'display-map',
+        style: this.INITIAL_VIEW_STATE.style,
         interactive: false,
-        center: [INITIAL_VIEW_STATE.longitude, INITIAL_VIEW_STATE.latitude],
-        zoom: INITIAL_VIEW_STATE.zoom,
-        bearing: INITIAL_VIEW_STATE.bearing,
-        pitch: INITIAL_VIEW_STATE.pitch,
+        center: [
+          this.INITIAL_VIEW_STATE.longitude,
+          this.INITIAL_VIEW_STATE.latitude,
+        ],
+        zoom: this.INITIAL_VIEW_STATE.zoom,
+        bearing: this.INITIAL_VIEW_STATE.bearing,
+        pitch: this.INITIAL_VIEW_STATE.pitch,
       });
 
-      this.colLayer = new ColumnLayer({
+      const colLayer = new ColumnLayer({
         id: 'column-layer',
         data: data,
         diskResolution: 12,
@@ -140,10 +138,12 @@ export class MapService {
 
       this.deck = new Deck({
         canvas: 'deck-canvas',
-        width: '100%',
-        height: '100%',
-        initialViewState: INITIAL_VIEW_STATE,
+        width: '90vw',
+        height: '90vh',
+        style: { left: '50%', transform: 'translate(-50%)' },
+        initialViewState: this.INITIAL_VIEW_STATE,
         controller: true,
+        // handles movement of mapbox map with canvas
         onViewStateChange: ({ viewState }: any) => {
           map.jumpTo({
             center: [viewState.longitude, viewState.latitude],
@@ -152,9 +152,8 @@ export class MapService {
             pitch: viewState.pitch,
           });
         },
-        getTooltip: ({ object }: any) =>
-          object && `height: ${object.value * 5000}m`,
-        layers: [this.colLayer],
+        getTooltip: ({ object }: any) => object && `value: ${object.value}`,
+        layers: [colLayer],
       });
     });
   }
