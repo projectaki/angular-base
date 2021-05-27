@@ -23,6 +23,6 @@ export class PolygonsFromMapComponent implements OnInit {
   };
 
   clickMe() {
-    this.map.updateDeckData(5);
+    this.map.getAllPolygons();
   }
 }

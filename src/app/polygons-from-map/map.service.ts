@@ -3,8 +3,10 @@ import { Injectable } from '@angular/core';
 import * as MapboxDraw from '@mapbox/mapbox-gl-draw';
 import * as mapboxgl from 'mapbox-gl';
 import { combineLatest, Observable, Subject } from 'rxjs';
-import { map, startWith, tap } from 'rxjs/operators';
+import { map, scan, startWith, tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+
+import * as turf from '@turf/turf';
 
 // import { GeoJsonLayer, ArcLayer } from '@deck.gl/layers';
 
@@ -17,9 +19,11 @@ const { MapboxLayer } = require('@deck.gl/mapbox');
   providedIn: 'root',
 })
 export class MapService {
-  res$: Observable<any> = this.http.get(
-    'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/hexagons.json'
-  );
+  res$: Observable<any> = this.http
+    .get(
+      'https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/hexagons.json'
+    )
+    .pipe();
 
   newDataSubject = new Subject<any>();
   newData$ = this.newDataSubject.asObservable().pipe(startWith([]));
@@ -28,8 +32,17 @@ export class MapService {
     map(([original, newData]) => {
       if (newData.length === 0) return original;
       else return newData;
-    })
+    }),
+    tap((data) => console.log('ALSO FINAL', data))
   );
+
+  id = 0;
+
+  polygonSubject = new Subject<any>();
+  polygon$ = this.polygonSubject
+    .asObservable()
+    .pipe()
+    .subscribe((data) => this.filterDataByPolygons(data));
 
   map: any;
   deck: any;
@@ -75,34 +88,33 @@ export class MapService {
 
   updateDeckData(val: number) {
     // will be raplaced with data to update
-    this.res$
-      .pipe(
-        map((data) => data.slice(0, val)),
-        tap((data) => console.log(data))
-      )
-      .subscribe((data) => {
-        this.newDataSubject.next(data);
-      });
-
-    this.data$.subscribe((data: any) => {
-      const layers = [
-        new ColumnLayer({
-          id: 'column-layer',
-          data: data,
-          diskResolution: 12,
-          radius: 250,
-          extruded: true,
-          pickable: true,
-          autoHighlight: true,
-          elevationScale: 5000,
-          getPosition: (d: { centroid: any }) => d.centroid,
-          getFillColor: (d: { value: number }) => [48, 128, d.value * 255, 255],
-          getLineColor: [0, 0, 0],
-          getElevation: (d: { value: any }) => d.value,
-        }),
-      ];
-      this.deck.setProps({ layers: layers });
-    });
+    // this.res$
+    //   .pipe(
+    //     map((data) => data.slice(0, val)),
+    //     tap((data) => console.log(data))
+    //   )
+    //   .subscribe((data) => {
+    //     this.newDataSubject.next(data);
+    //   });
+    // this.data$.subscribe((data: any) => {
+    //   const layers = [
+    //     new ColumnLayer({
+    //       id: 'column-layer',
+    //       data: data,
+    //       diskResolution: 12,
+    //       radius: 250,
+    //       extruded: true,
+    //       pickable: true,
+    //       autoHighlight: true,
+    //       elevationScale: 5000,
+    //       getPosition: (d: { centroid: any }) => d.centroid,
+    //       getFillColor: (d: { value: number }) => [48, 128, d.value * 255, 255],
+    //       getLineColor: [0, 0, 0],
+    //       getElevation: (d: { value: any }) => d.value,
+    //     }),
+    //   ];
+    //   this.deck.setProps({ layers: layers });
+    // });
   }
 
   buildDisplayMap() {
@@ -162,8 +174,45 @@ export class MapService {
     var FeatureCollection = this.draw?.getAll();
     const polygons = [];
     for (let feature of FeatureCollection.features) {
-      polygons.push(feature.geometry.coordinates[0]);
+      polygons.push([feature.geometry.coordinates[0]]);
     }
-    return polygons;
+    this.polygonSubject.next(polygons);
   };
+
+  isPointInPolygon(point: [], polygon: [[]]): boolean {
+    var pt = turf.point(point);
+    var poly = turf.polygon(polygon);
+    const res = turf.booleanPointInPolygon(pt, poly);
+    return res;
+  }
+
+  filterDataByPolygons(polygons: any) {
+    console.log('arrived ', polygons);
+    this.res$.subscribe((data) => {
+      const filtered = data.filter((x: any) => {
+        for (let polygon of polygons) {
+          if (this.isPointInPolygon(x.centroid, polygon)) return true;
+        }
+        return false;
+      });
+
+      const layers = [
+        new ColumnLayer({
+          id: 'column-layer',
+          data: filtered,
+          diskResolution: 12,
+          radius: 250,
+          extruded: true,
+          pickable: true,
+          autoHighlight: true,
+          elevationScale: 5000,
+          getPosition: (d: { centroid: any }) => d.centroid,
+          getFillColor: (d: { value: number }) => [48, 128, d.value * 255, 255],
+          getLineColor: [0, 0, 0],
+          getElevation: (d: { value: any }) => d.value,
+        }),
+      ];
+      this.deck.setProps({ layers: layers });
+    });
+  }
 }
