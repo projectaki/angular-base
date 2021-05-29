@@ -38,7 +38,7 @@ import { getProducts, getShow, State } from './state';
   styleUrls: ['./product-list.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush, // Input changes, Event emits, bound observable emits
 })
-export class ProductListComponent implements OnInit, OnDestroy {
+export class ProductListComponent {
   @Input() passed: number = 0; // input parameter from parent
   @Output() emitEvent: EventEmitter<string> = new EventEmitter<string>(); // callback function of parent, return has to be consumed in parent
 
@@ -93,14 +93,6 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   toggled: boolean = false;
 
-  // test$ = combineLatest([
-  //   this.productService.productsCombined$,
-  //   this.addProductAction$,
-  // ]).pipe(
-  //   tap(([products, product]) => console.log('prod', products, product)),
-  //   map(([products, product]) => [...products, product])
-  // );
-
   // injected services (ActivatedRoute: for reading url, Router: for navigating to route with code )
   constructor(
     private productService: ProductService,
@@ -135,6 +127,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
   addProd() {
     const newProd: IProduct = { id: 9, price: 6, name: 'added' };
+    // this.products = [...this.products, newProd];
     this.productService
       .createProduct(newProd)
       .subscribe(() => this.addProductSubject.next([newProd]));

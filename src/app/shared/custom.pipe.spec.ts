@@ -1,8 +1,11 @@
 import { CustomPipe } from './custom.pipe';
 
-describe('CustomPipe', () => {
-  it('create an instance', () => {
-    const pipe = new CustomPipe();
-    expect(pipe).toBeTruthy();
+describe('Custom pipe', () => {
+  it('should return the string "transformed"', () => {
+    let cPipe = new CustomPipe();
+
+    let res = cPipe.transform('hello');
+
+    expect(res).toEqual('transformed');
   });
 });
