@@ -42,13 +42,13 @@ export class ProductService {
     // shareReplay(1) // caches the observable if multiple things subscribe to it, it will onyl load once
   );
 
-  higherOrderProducts$ = of(1, 3).pipe(
-    concatMap((id) => this.http.get<IProduct>(`${this.URL}/${id}`))
-    // toArray() if we need it to emit 1 array
-  );
+  // higherOrderProducts$ = of(5, 3).pipe(
+  //   concatMap((id) => this.http.get<IProduct>(`${this.URL}/${id}`))
+  //   // toArray() if we need it to emit 1 array
+  // );
 
   constructor(private http: HttpClient) {
-    this.higherOrderProducts$.subscribe((data) => console.log('HO', data));
+    // this.higherOrderProducts$.subscribe((data) => console.log('HO', data));
   }
 
   // // returns an observable

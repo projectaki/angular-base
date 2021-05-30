@@ -127,7 +127,7 @@ export class ProductListComponent {
 
   addProd() {
     const newProd: IProduct = { id: 9, price: 6, name: 'added' };
-    // this.products = [...this.products, newProd];
+    this.products = [...this.products, newProd];
     this.productService
       .createProduct(newProd)
       .subscribe(() => this.addProductSubject.next([newProd]));

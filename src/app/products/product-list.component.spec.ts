@@ -12,9 +12,10 @@ describe('product list test', () => {
   // start with setting common state, by resetting state before all tests
   beforeEach(() => {
     mockProductService = jasmine.createSpyObj(['createProduct']); //creates a mock object with given method names
+    mockProductService.categories$ = of([1]);
     mockRoute = jasmine.createSpyObj(['test']); //creates a mock object with given method names
     mockRouter = jasmine.createSpyObj(['test']); //creates a mock object with given method names
-    mockStore = jasmine.createSpyObj(['test']); //creates a mock object with given method names
+    mockStore = jasmine.createSpyObj(['select', 'dispatch']); //creates a mock object with given method names
     component = new ProductListComponent(
       mockProductService,
       mockRoute,
@@ -24,21 +25,11 @@ describe('product list test', () => {
   });
 
   describe('Add product', () => {
-    // it('should add a product', () => {
-    //   mockProductService.createProduct.and.returnValue(of(true));
-    //   component.addProd();
-    //   expect(component.products.length).toBe(1);
-    //   expect(mockProductService.createProduct).toHaveBeenCalled();
-    // });
+    it('should add a product', () => {
+      mockProductService.createProduct.and.returnValue(of(true));
+      component.addProd();
+      expect(component.products.length).toBe(1);
+      expect(mockProductService.createProduct).toHaveBeenCalled();
+    });
   });
-  // // actual test
-  // it('should be true if true', () => {
-  //   // Arrange
-  //   systemUnderTest.a = false;
-  //   // Act
-  //   systemUnderTest.a = true;
-
-  //   // Assert
-  //   expect(systemUnderTest.a).toBe(true);
-  // });
 });
