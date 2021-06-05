@@ -14,16 +14,23 @@ import { StoreModule } from '@ngrx/store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { environment } from '../environments/environment';
 import { EffectsModule } from '@ngrx/effects';
+import { BatchingOperatorsComponent } from './observable/batching-operators/batching-operators.component';
 
 @NgModule({
-  declarations: [AppComponent, ObservableComponent, HomeComponent],
+  declarations: [
+    AppComponent,
+    ObservableComponent,
+    HomeComponent,
+    BatchingOperatorsComponent,
+  ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
     RouterModule.forRoot([
+      { path: 'rxjs', component: BatchingOperatorsComponent },
       { path: 'home', component: HomeComponent },
-      { path: '', redirectTo: 'forms', pathMatch: 'full' },
+      { path: '', redirectTo: 'rxjs', pathMatch: 'full' },
       { path: '**', redirectTo: 'home', pathMatch: 'full' },
     ]),
     ProductModule,
