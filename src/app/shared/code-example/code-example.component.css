@@ -1,0 +1,14 @@
+pre {
+  display: flex;
+  margin-top: 0;
+  margin-bottom: 0;
+  word-wrap: break-word;
+  border: 1px;
+}
+code {
+  flex: 1;
+  line-height: 1.5em;
+  font-size: 14px;
+  min-height: 100%;
+  padding: 1em 1.2em;
+}
